@@ -5,55 +5,23 @@ def process_ajax(line):
         if line['path'].startswith('/ajax/'):
             output_statsd_count('call.ajax')
 
-def process_api(line):
+def process_status(line):
     if 'path' in line.keys():
-        if line['path'].startswith('/v2.0/tokens'):
-            output_statsd_count("sp.nginx.tokens.{0}".format(line['method'].lower()))
-            output_statsd_timer("sp.nginx.tokens.{0}.service_time".format(line['method'].lower()), line['service_time'])
+        if line['path'].startswith('/v2.0/status/'):
+            output_statsd_count("sp.nginx.ord1a.status.total")
+            if line['response_code'] == "200":
+                output_statsd_count("sp.nginx.ord1a.status.successful")
+            else:
+                output_statsd_count("sp.nginx.ord1a.status.failure")
+           
+            output_statsd_timer("sp.nginx.ord1a.status.service_time", line['service_time'])
 
-def process_os_and_user_agent_request(line):
-    if 'client' in line.keys():
-        user_agent, os = _get_platform(line['client'])
-        metric_name = 'browser_request.{0}.{1}'.format(user_agent, os)
-        output_statsd_count(metric_name)
 
-def _get_platform(user_agent_string):
-    user_agent_string = user_agent_string.lower()
+def process_tokens(line):
+    if 'path' in line.keys():
+        if line['path'].startswith('/v2.0/tokens/'):
+            output_statsd_count("sp.nginx.ord1a.tokens.{0}.total".format(line['method'].lower()))
+            if line['response_code'] != "200":
+                output_statsd_count("sp.nginx.ord1a.tokens.{0}.failure".format(line['method'].lower()))
+            output_statsd_timer("sp.nginx.ord1a.tokens.{0}.service_time".format(line['method'].lower()), line['service_time'])
 
-    # Dumb parser to attempt to get a simple UA and OS
-    user_agent = 'unknown'
-    os = 'unknown'
-
-    # Check IE and get version
-    if 'msie' in user_agent_string:
-        for ie_version in ['4','5','6', '7', '8', '9', '10']:
-            if "msie {}".format(ie_version) in user_agent_string:
-                user_agent = 'ie{}'.format(ie_version)
-
-    # Check Webkit
-    if 'safari' in user_agent_string:
-        # Determine if Chrome or Safari
-        if 'chrome' in user_agent_string:
-            user_agent = 'chrome'
-        else:
-            user_agent = 'safari'
-
-    # Check Firefox
-    if 'firefox' in user_agent_string:
-        user_agent = 'firefox'
-
-    # Figure out OS
-    if 'windows' in user_agent_string:
-        os = 'windows'
-    elif 'mac' in user_agent_string:
-        os = 'mac'
-    elif 'linux' in user_agent_string:
-        os = 'linux'
-
-    # Keep track of our bots
-    for bot in ['bot', 'spider', 'symfony', 'grabber']:
-        if bot in user_agent_string:
-            user_agent = 'bot'
-            os = 'bot'
-
-    return (user_agent, os)
