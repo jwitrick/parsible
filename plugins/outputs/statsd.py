@@ -13,10 +13,12 @@ def output_print_line(line):
 
 def output_statsd_timer(stat, metric_time):
     data = "{0}:{1}|ms".format(stat, metric_time)
-    _send_statsd(data)
+    print data
+#    _send_statsd(data)
 
 def output_statsd_count(stat, count=None):
     if count is None:
         count = 1
     data = "{0}:{1}|c".format(stat, count)
-    _send_statsd(data)
+    print data
+    #_send_statsd(data)

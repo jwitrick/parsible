@@ -1,4 +1,4 @@
-from plugins.outputs.statsd import output_statsd_count
+from plugins.outputs.statsd import output_statsd_count, output_statsd_timer
 
 def process_ajax(line):
     if 'path' in line.keys():
@@ -7,8 +7,12 @@ def process_ajax(line):
 
 def process_api(line):
     if 'path' in line.keys():
-        if line['path'].startswith('/api/'):
+#        print line
+        if line['path'].startswith('/v2.0/'):
+#            print line['path']
+#            print line['service_time']
             output_statsd_count('call.api')
+            output_statsd_timer('api.service_time', line['service_time'])
 
 def process_os_and_user_agent_request(line):
     if 'client' in line.keys():

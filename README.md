@@ -103,7 +103,7 @@ To enable batch processing mode, just append `--batch-mode True` to your command
 ================
 
 * Linux
-* Python 2.7+ (due to argparse)
+* Python 2.6+
 * Some tasty logs
 
 

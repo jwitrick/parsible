@@ -1,5 +1,6 @@
 #!/bin/python
-import sys, time, os, signal, imp, argparse, logging, traceback
+from optparse import OptionParser
+import sys, time, os, signal, imp, logging, traceback
 
 class Parsible(object):
     def import_plugins(self):
@@ -184,7 +185,6 @@ class Parsible(object):
 
         # Get our Generator Reference
         parsed_log_file = self.follow()
-
         # Abstract all the messy generator logic away into a simple for-each
         for parsed_line in parsed_log_file:
             # The processors should take care of outputting data as they see fit
@@ -200,18 +200,19 @@ if __name__ == '__main__':
 
     # Just setting up command line arguments.
     # Only thing interesting here is the defaults set for some options. You can skip this trying to get to the meat.
-    cmdline = argparse.ArgumentParser(usage="usage: parsible.py --log-file /var/log/mylog [options]",
+#    cmdline = argparse.ArgumentParser(usage="usage: parsible.py --log-file /var/log/mylog [options]",
+#                                      description="Tail a log file and filter each line to generate metrics that can be output to any desired endpoint.")
+    cmdline = OptionParser(usage="usage: parsible.py --log-file /var/log/mylog [options]",
                                       description="Tail a log file and filter each line to generate metrics that can be output to any desired endpoint.")
 
-    cmdline.add_argument('--log-file',
+    cmdline.add_option('--log-file',
                          '-l',
                          action='store',
                          help='The absolute path to the log file to be parsed, Ex: /var/log/mylog',
                          dest='input_file',
-                         required=True
                         )
 
-    cmdline.add_argument('--parser',
+    cmdline.add_option('--parser',
                          '-p',
                          action='store',
                          help='Name of the parsing method to use, should start with "parse_", Ex: parse_nginx   If this is not set, Parsible will use the first parser found.',
@@ -219,7 +220,7 @@ if __name__ == '__main__':
                          default=None
                         )
 
-    cmdline.add_argument('--pid-file',
+    cmdline.add_option('--pid-file',
                          '-f',
                          action='store',
                          help='Absolute path to use for the PID file, Ex: /tmp/parsible.pid',
@@ -227,7 +228,7 @@ if __name__ == '__main__':
                          default='/tmp/parsible.pid'
                         )
 
-    cmdline.add_argument('--debug',
+    cmdline.add_option('--debug',
                          '-d',
                          action='store',
                          help='Enable Debugging',
@@ -235,7 +236,7 @@ if __name__ == '__main__':
                          default=False
                         )
 
-    cmdline.add_argument('--batch-mode',
+    cmdline.add_option('--batch-mode',
                          '-b',
                          action='store',
                          help='If Set, Parsible will start at the top of the log file and exit once it reaches the end.  Useful for processing logs that are not realtime',
@@ -243,7 +244,7 @@ if __name__ == '__main__':
                          default=False
                         )
 
-    cmdline.add_argument('--auto-reload',
+    cmdline.add_option('--auto-reload',
                          '-a',
                          action='store',
                          help='If Set, when receiving empty lines Parsible will check if there is a discrepancy between the stored and existing file descriptors for the log file. If a discrepancy is found, Parsible will reload the new file.',
@@ -251,6 +252,6 @@ if __name__ == '__main__':
                          default=False
                         )
 
-    args = cmdline.parse_args()
+    args, extras = cmdline.parse_args()
     p = Parsible(args.input_file, args.parser, args.pid_file, args.debug, args.batch, args.auto_reload)
     p.main()
