@@ -7,12 +7,9 @@ def process_ajax(line):
 
 def process_api(line):
     if 'path' in line.keys():
-#        print line
-        if line['path'].startswith('/v2.0/'):
-#            print line['path']
-#            print line['service_time']
-            output_statsd_count('call.api')
-            output_statsd_timer('api.service_time', line['service_time'])
+        if line['path'].startswith('/v2.0/tokens'):
+            output_statsd_count("sp.nginx.tokens.{0}".format(line['method'].lower()))
+            output_statsd_timer("sp.nginx.tokens.{0}.service_time".format(line['method'].lower()), line['service_time'])
 
 def process_os_and_user_agent_request(line):
     if 'client' in line.keys():
